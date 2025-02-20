@@ -1,0 +1,46 @@
+import requests
+import json
+
+# Qlik Sense SaaS API Details
+QLIK_CLOUD_BASE_URL = "https://your-tenant.region.qlikcloud.com"
+API_KEY = "your-api-key"
+
+# Headers for API request
+HEADERS = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
+
+def get_users():
+    """Fetch all users from Qlik Sense SaaS"""
+    url = f"{QLIK_CLOUD_BASE_URL}/api/v1/users"
+    try:
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
+        users = response.json()["data"]
+        return users
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching users: {e}")
+        return None
+
+def get_entitlements(user_id):
+    """Fetch license entitlements for a specific user"""
+    url = f"{QLIK_CLOUD_BASE_URL}/api/v1/licenses/assignments?userId={user_id}"
+    try:
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
+        entitlements = response.json()["data"]
+        return entitlements
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching entitlements for user {user_id}: {e}")
+        return None
+
+if __name__ == "__main__":
+    users = get_users()
+    if users:
+        for user in users:
+            print(f"User: {user['name']} - Email: {user['email']} - ID: {user['id']}")
+            entitlements = get_entitlements(user['id'])
+            if entitlements:
+                print(f"License Entitlements: {json.dumps(entitlements, indent=2)}")
+            print("-" * 50)
